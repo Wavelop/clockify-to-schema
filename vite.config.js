@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 export default defineConfig({
-    base: '/',
+    base: '/clockify-to-schema/',
     server: {
         host: '0.0.0.0',
         port: 5175,

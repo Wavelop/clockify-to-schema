@@ -1,11 +1,12 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(npm run:*)",
       "Bash(npm install:*)",
       "Bash(npm audit:*)",
-      "Bash(pkill -f \"vite\")"
-    ]
+      "Bash(pkill -f \"vite\")",
+      "Bash(git -C /workspace remote get-url origin)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

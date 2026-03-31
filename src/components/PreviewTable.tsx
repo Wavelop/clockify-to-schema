@@ -95,14 +95,6 @@ export function PreviewTable({
                   <span className="inline-flex items-center gap-1">
                     {col.label}
                     <SortIcon className={`h-3 w-3 ${isActive ? 'opacity-100' : 'opacity-30'}`} />
-                    {col.editable && (
-                      <span
-                        className="text-[10px] normal-case tracking-normal font-normal opacity-60"
-                        title="Modificabile"
-                      >
-                        ✎
-                      </span>
-                    )}
                   </span>
                 </th>
               )
@@ -143,7 +135,7 @@ export function PreviewTable({
                       key={col.key}
                       className="px-3 py-2 whitespace-nowrap"
                     >
-                      {col.editable && isEditing ? (
+                      {isEditing ? (
                         col.options ? (
                           <select
                             autoFocus
@@ -181,19 +173,15 @@ export function PreviewTable({
                         )
                       ) : (
                         <span
-                          title={col.editable ? 'Clicca per modificare' : value}
-                          onClick={
-                            col.editable
-                              ? () => startEdit(originalIdx, col.key, value)
-                              : undefined
-                          }
-                          className={col.editable ? 'cursor-text hover:underline decoration-dashed underline-offset-2' : ''}
+                          title="Clicca per modificare"
+                          onClick={() => startEdit(originalIdx, col.key, value)}
+                          className="cursor-text hover:underline decoration-dashed underline-offset-2"
                         >
-                          {value || (col.editable ? (
+                          {value || (
                             <span style={{ color: 'hsl(var(--muted-foreground))' }} className="italic">
                               —
                             </span>
-                          ) : '')}
+                          )}
                         </span>
                       )}
                     </td>

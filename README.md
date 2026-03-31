@@ -1,17 +1,17 @@
-# Calcolatore Mutuo
+# Ore Export
 
-PWA per il calcolo di mutui ipotecari. Funziona offline, installabile su desktop e mobile.
+PWA per trasformare export CSV di Clockify in file Excel formattati, tramite un sistema di schemi configurabili.
 
 ## Funzionalità
 
-- **Calcolatore** — importo, durata, TAN, spese accessorie (istruttoria, perizia, conto, assicurazione)
-- **Risultati in tempo reale** — rata mensile, TAEG (Newton-Raphson IRR), totale interessi, totale restituito
-- **Piano di ammortamento** — vista annuale/mensile, punto di sorpasso capitale > interessi evidenziato
-- **Grafici** — composizione rata (area), ripartizione totale (donut), riepilogo annuale (barre)
-- **Scenari** — salva, carica, duplica, elimina scenari in IndexedDB; confronto side-by-side fino a 3 scenari
+- **Schemi configurabili** — definisci colonne di output, mapping per utente, valori statici e trasformazioni
+- **Import CSV** — trascina un CSV Clockify (summary o detailed) per caricare i dati
+- **Anteprima editabile** — modifica le celle prima dell'export; dropdown per campi a scelta multipla
+- **Ordinamento colonne** — click sulle intestazioni per ordinare asc/desc
+- **Export XLSX** — genera un file Excel con le colonne dello schema
+- **Persistenza** — stato (CSV, selezioni, modifiche) salvato in IndexedDB via Dexie con ripristino automatico
 - **Dark mode** — toggle con persistenza
 - **PWA** — installabile, funziona offline dopo la prima visita
-- **Mobile-first** — bottom navigation su mobile, safe area iOS
 
 ## Stack tecnico
 
@@ -21,84 +21,59 @@ PWA per il calcolo di mutui ipotecari. Funziona offline, installabile su desktop
 | React + TypeScript | ^19 / ^6 |
 | Tailwind CSS | ^4 |
 | Radix UI | vari |
-| Recharts | ^3 |
 | Dexie (IndexedDB) | ^4 |
+| SheetJS (xlsx) | ^0.18 |
 | vite-plugin-pwa | ^1 |
 
 ## Avvio locale
 
 ```bash
-git clone https://github.com/<utente>/mutuo-calculator.git
-cd mutuo-calculator
 npm install
 npm run dev
 ```
 
-Apri [http://localhost:5173/mutuo-calculator/](http://localhost:5173/mutuo-calculator/)
+Apri [http://localhost:5175](http://localhost:5175)
 
-> In un container Docker assicurati di esporre la porta: `-p 5173:5173`
+> In un container Docker assicurati di esporre la porta: `-p 5175:5175`
 
-## Build
-
-```bash
-npm run build
-```
-
-Output in `/dist`. Il service worker viene generato automaticamente da Workbox.
-
-## Preview build di produzione
+## Comandi
 
 ```bash
-npm run preview
+npm run dev           # Dev server su 0.0.0.0:5175
+npm run build         # TypeScript check + Vite build
+npm run preview       # Preview build di produzione
+npm run deploy        # Build e deploy su GitHub Pages
+npm run generate-icons  # Rigenera le icone PWA in public/
 ```
-
-## Deploy su GitHub Pages
-
-1. Crea un repository su GitHub (es. `mutuo-calculator`)
-2. Aggiorna `base` in [vite.config.ts](vite.config.ts) con il nome del tuo repo:
-   ```ts
-   base: '/nome-repo/',
-   ```
-3. Fai lo stesso in [index.html](index.html) per i path delle icone
-4. Esegui:
-   ```bash
-   npm run deploy
-   ```
-
-Il comando builda il progetto e fa il push del contenuto di `/dist` sul branch `gh-pages`.
 
 ## Struttura del progetto
 
 ```
 src/
 ├── components/
-│   ├── calculator/       # Form input, risultati, dialog salvataggio
-│   ├── amortization/     # Tabella piano ammortamento
-│   ├── charts/           # Grafici Recharts
-│   ├── scenarios/        # Lista scenari e confronto
-│   └── ui/               # Componenti base (Button, Card, Input, ...)
+│   ├── ui/             # Componenti base (Button, Card, Input, ...)
+│   ├── CsvDropzone.tsx
+│   ├── PreviewTable.tsx
+│   ├── SchemaList.tsx
+│   └── SchemaView.tsx
 ├── hooks/
-│   ├── use-mortgage.ts   # Calcolo reattivo tramite useMemo
-│   └── use-scenarios.ts  # CRUD scenari su IndexedDB
+│   └── use-import.ts   # Caricamento CSV, trasformazione, selezione righe
 ├── lib/
-│   ├── mortgage-math.ts  # Funzioni pure: ammortamento francese, TAEG, crossover
-│   ├── db.ts             # Schema Dexie e operazioni DB
-│   ├── format.ts         # Formattazione numeri locale it-IT
-│   └── utils.ts          # cn() helper per Tailwind
+│   ├── csv.ts          # Parsing CSV
+│   ├── transform.ts    # Applicazione schema alle righe
+│   ├── export.ts       # Scrittura XLSX
+│   └── db.ts           # Schema Dexie e persistenza
+├── schemas/
+│   ├── index.ts        # Registro schemi
+│   └── *.ts            # Definizione dei singoli schemi
 ├── types/
-│   └── mortgage.ts       # Tipi TypeScript
+│   └── schema.ts       # Tipi TypeScript (Schema, ColumnDef, SortState)
 └── App.tsx
 ```
 
-## Calcoli finanziari
+## Aggiungere uno schema
 
-Tutti i calcoli sono in [`src/lib/mortgage-math.ts`](src/lib/mortgage-math.ts):
-
-- **Rata mensile** — formula francese: `R = C × r / (1 − (1+r)^−n)`
-- **TAEG** — metodo IRR iterativo (Newton-Raphson), include tutte le spese
-- **Punto di sorpasso** — prima rata in cui la quota capitale supera la quota interessi
-
-I numeri sono formattati con `Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' })`.
+Crea un file in `src/schemas/` e registralo in `src/schemas/index.ts`. Vedi [doc/schema.md](doc/schema.md) per la documentazione completa.
 
 ## Licenza
 
