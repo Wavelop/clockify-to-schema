@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <script>
     // GitHub Pages SPA fallback: redirect to index.html preserving the path
-    var path = window.location.pathname || '/';
+    var base = '/clockify-to-schema/';
+    var path = window.location.pathname;
     var search = window.location.search;
-    window.location.replace('/?redirect=' + encodeURIComponent(path + search));
+    window.location.replace(base + '?redirect=' + encodeURIComponent(path + search));
   </script>
 </head>
 <body></body>

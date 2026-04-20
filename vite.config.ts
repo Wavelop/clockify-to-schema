@@ -24,8 +24,8 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        start_url: '/clockify-to-schema/',
+        scope: '/clockify-to-schema/',
         icons: [
           {
             src: '/icons/icon-192.png',
@@ -47,8 +47,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: '/',
-        navigateFallbackAllowlist: [/^\//],
+        navigateFallback: '/clockify-to-schema/index.html',
+        navigateFallbackAllowlist: [/^\/clockify-to-schema\//],
         runtimeCaching: [],
       },
     }),

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { ArrowLeft, Sun, Moon } from 'lucide-react'
+import { useRegisterSW } from 'virtual:pwa-register/react'
+import { ArrowLeft, Sun, Moon, RefreshCw, Check } from 'lucide-react'
 import { PWAInstallPrompt } from './components/PWAInstallPrompt'
 import { SchemaList } from './components/SchemaList'
 import { SchemaView } from './components/SchemaView'
@@ -11,13 +12,13 @@ import { schemas, getSchema } from './schemas/index'
 
 type AppView = 'list' | 'schema'
 
-const BASE = ''
+const BASE = '/clockify-to-schema'
 
 function parsePath(pathname: string): { view: AppView; schemaId: string | null } {
   let path = pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname
   if (!path || path === '/') return { view: 'list', schemaId: null }
 
-  const match = path.match(/^\/([^/]+)\/?$/)
+  const match = path.match(/^\/s\/([^/]+)\/?$/)
   if (match) {
     const id = match[1]
     if (getSchema(id)) return { view: 'schema', schemaId: id }
@@ -28,12 +29,38 @@ function parsePath(pathname: string): { view: AppView; schemaId: string | null }
 
 function buildUrl(view: AppView, schemaId?: string | null): string {
   if (view === 'list') return `${BASE}/`
-  return `${BASE}/${schemaId}`
+  return `${BASE}/s/${schemaId}`
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  // ── SW update ──────────────────────────────────────────────────────────────
+  type UpdateState = 'idle' | 'checking' | 'up-to-date'
+  const [updateState, setUpdateState] = useState<UpdateState>('idle')
+  const swReg = useRef<ServiceWorkerRegistration | undefined>(undefined)
+
+  useRegisterSW({
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return
+      swReg.current = registration
+      const check = () => registration.update()
+      setInterval(check, 10 * 60 * 1000)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') check()
+      })
+    },
+  })
+
+  const handleCheckUpdate = useCallback(async () => {
+    if (!swReg.current || updateState !== 'idle') return
+    setUpdateState('checking')
+    await swReg.current.update()
+    // If a new SW was found the page reloads; if not, show brief confirmation
+    setUpdateState('up-to-date')
+    setTimeout(() => setUpdateState('idle'), 2000)
+  }, [updateState])
+
   const [darkMode, setDarkModeState] = useState(getDarkMode)
   const [wideMode, setWideMode] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -108,7 +135,19 @@ export default function App() {
             )}
           </div>
 
-          {/* Right: dark mode toggle */}
+          {/* Right: update check + dark mode toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCheckUpdate}
+            aria-label="Controlla aggiornamenti"
+            disabled={updateState !== 'idle'}
+          >
+            {updateState === 'up-to-date'
+              ? <Check className="h-5 w-5 text-green-500" />
+              : <RefreshCw className={`h-5 w-5 ${updateState === 'checking' ? 'animate-spin' : ''}`} />
+            }
+          </Button>
           <Button
             variant="ghost"
             size="icon"
